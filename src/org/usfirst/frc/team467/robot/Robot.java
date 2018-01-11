@@ -10,9 +10,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.apache.log4j.Logger;
 
-import com.ctre.CANTalon;
-import com.ctre.CANTalon.FeedbackDevice;
-import com.ctre.CANTalon.TalonControlMode;
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -34,10 +34,10 @@ public class Robot extends IterativeRobot {
     final int blID = 3;
     final int brID = 6;
     
-    CANTalon fl;
-    CANTalon fr;
-    CANTalon bl;
-    CANTalon br;
+    WPI_TalonSRX fl;
+    WPI_TalonSRX fr;
+    WPI_TalonSRX bl;
+    WPI_TalonSRX br;
     
     Joystick stick;
     
@@ -52,40 +52,44 @@ public class Robot extends IterativeRobot {
         chooser.addObject("My Auto", customAuto);
         SmartDashboard.putData("Auto choices", chooser);
         stick = new Joystick(0);
-        fl = new CANTalon(flID);
-        fr = new CANTalon(frID);
-        bl = new CANTalon(blID);
-        br = new CANTalon(brID);
+        fl = new WPI_TalonSRX(flID);
+        fr = new WPI_TalonSRX(frID);
+        bl = new WPI_TalonSRX(blID);
+        br = new WPI_TalonSRX(brID);
         
-        fl.changeControlMode(TalonControlMode.PercentVbus);
-        fl.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
-        fl.reverseSensor(false);
-        fl.configNominalOutputVoltage(+0.0f, -0.0f);
-        fl.configPeakOutputVoltage(+12.0f, -12.0f);
-        fl.setProfile(0);
-        fl.setF(0);
-        fl.setP(0);
-        fl.setI(0);
-        fl.setD(0);
-        fl.setMotionMagicCruiseVelocity(0);
-        fl.setMotionMagicAcceleration(0);
+        fl.set(ControlMode.PercentOutput, 0.0);
+        fl.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0);
+        fl.setSensorPhase(false);
+        fl.configNominalOutputForward(0.0f, 0);
+        fl.configNominalOutputReverse(0.0f, 0);
+        fl.configPeakOutputForward(+12.0f, 0);
+        fl.configPeakOutputReverse(-12.0f, 0);
+        fl.selectProfileSlot(0, 0);
+        fl.config_kF(0, 0, flID);
+        fl.config_kP(0, 0, flID);
+        fl.config_kI(0, 0, flID);
+        fl.config_kD(0, 0, flID);
+        fl.configMotionCruiseVelocity(0, 0);
+        fl.configMotionAcceleration(0, 0);
         
-        bl.changeControlMode(TalonControlMode.Follower);
+        bl.set(ControlMode.Follower, flID);
 
-        fr.changeControlMode(TalonControlMode.PercentVbus);
-        fr.setFeedbackDevice(FeedbackDevice.CtreMagEncoder_Relative);
-        fr.reverseSensor(false);
-        fr.configNominalOutputVoltage(+0.0f, -0.0f);
-        fr.configPeakOutputVoltage(+12.0f, -12.0f);
-        fr.setProfile(0);
-        fr.setF(0);
-        fr.setP(0);
-        fr.setI(0);
-        fr.setD(0);
-        fr.setMotionMagicCruiseVelocity(0);
-        fr.setMotionMagicAcceleration(0);
+        fr.set(ControlMode.PercentOutput, 0.0);
+        fr.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 0);
+        fr.setSensorPhase(false);
+        fr.configNominalOutputForward(0.0f, 0);
+        fr.configNominalOutputReverse(0.0f, 0);
+        fr.configPeakOutputForward(+12.0f, 0);
+        fr.configPeakOutputReverse(-12.0f, 0);
+        fr.selectProfileSlot(0, 0);
+        fr.config_kF(0, 0, frID);
+        fr.config_kP(0, 0, frID);
+        fr.config_kI(0, 0, frID);
+        fr.config_kD(0, 0, frID);
+        fr.configMotionCruiseVelocity(0, 0);
+        fr.configMotionAcceleration(0, 0);
         
-        br.changeControlMode(TalonControlMode.Follower);
+        br.set(ControlMode.Follower, frID);
         
         System.out.println(stick);
     }
@@ -126,18 +130,15 @@ public class Robot extends IterativeRobot {
     public void teleopPeriodic() {
         while (isOperatorControl() && isEnabled()) {
         	if (stick.getRawButton(1)) {
-        		fl.changeControlMode(TalonControlMode.MotionMagic);
-        		fr.changeControlMode(TalonControlMode.MotionMagic);
-        		double targetPos = stick.getAxis(AxisType.kY);
-        		fl.set(targetPos);
-        		fr.set(targetPos);
+        		double targetPos = stick.getY();
+        		
+        		fl.set(ControlMode.MotionMagic, targetPos);
+        		fr.set(ControlMode.MotionMagic, targetPos);
         		LOGGER.debug("FL = " + getData(fl));
         		LOGGER.debug("FR = " + getData(fr));
         	} else {
-        		fl.changeControlMode(TalonControlMode.PercentVbus);
-        		fr.changeControlMode(TalonControlMode.PercentVbus);
         		double Xaxis = stick.getRawAxis(4);
-                double Yaxis = stick.getAxis(AxisType.kY);
+                double Yaxis = stick.getY();
                 
 //                LOGGER.debug("X=" + Xaxis + ", Y=" + Yaxis);
                 LOGGER.debug("FL = " + getData(fl));
@@ -150,11 +151,11 @@ public class Robot extends IterativeRobot {
         }
     }
     
-    private String getData(CANTalon motor) {
-		return "RPM:" + motor.getSpeed() +
-				", Pos:" + motor.getPosition() +
-				", throttle:" + motor.getOutputVoltage()/motor.getBusVoltage() + 
-				", Closed Loop Error:" + motor.getClosedLoopError() + 
+    private String getData(WPI_TalonSRX motor) {
+		return "RPM:" + motor.getActiveTrajectoryVelocity() +
+				", Pos:" + motor.getActiveTrajectoryPosition() +
+				", throttle:" + motor.getMotorOutputVoltage()/motor.getBusVoltage() + 
+				", Closed Loop Error:" + motor.getClosedLoopError(0) + 
 				"";
 	}
 
