@@ -1,8 +1,6 @@
 package org.usfirst.frc.team467.robot;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;

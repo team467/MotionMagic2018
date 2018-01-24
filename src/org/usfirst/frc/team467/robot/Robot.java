@@ -4,6 +4,7 @@ package org.usfirst.frc.team467.robot;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Joystick.AxisType;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -40,6 +41,7 @@ public class Robot extends IterativeRobot {
     CANTalon br;
     
     Joystick stick;
+    XboxController controller;
     
     /**
      * This function is run when the robot is first started up and should be
@@ -52,6 +54,7 @@ public class Robot extends IterativeRobot {
         chooser.addObject("My Auto", customAuto);
         SmartDashboard.putData("Auto choices", chooser);
         stick = new Joystick(0);
+        controller = new XboxController(0);
         fl = new CANTalon(flID);
         fr = new CANTalon(frID);
         bl = new CANTalon(blID);
@@ -142,6 +145,10 @@ public class Robot extends IterativeRobot {
 //                LOGGER.debug("X=" + Xaxis + ", Y=" + Yaxis);
                 LOGGER.debug("FL = " + getData(fl));
         		LOGGER.debug("FR = " + getData(fr));
+                
+                
+           
+                
                 arcadeDrive(Xaxis, Yaxis);
 
                 Timer.delay(0.005); // wait for a motor update time
@@ -167,6 +174,14 @@ public class Robot extends IterativeRobot {
     public void arcadeDrive(double turn, double speed) {
         final double left;
         final double right;
+        
+        turn *= 0.5;
+        if(controller.getXButton() == false) {
+        	speed *= 0.5;
+        }
+
+        
+        
 //        final double maxTurn = 0.9; // Double.valueOf(SmartDashboard.getString("DB/String 1", "0.9"));
 //        final double minTurn = 0.5; // Double.valueOf(SmartDashboard.getString("DB/String 2", "0.5"));
 //        SmartDashboard.putString("DB/String 6", String.valueOf(maxTurn));
@@ -194,7 +209,11 @@ public class Robot extends IterativeRobot {
             }
         }
         drive(left, right);
+        
+        
     }
+    
+   
     
     /**
      * Squares a number but keeps the sign
@@ -202,17 +221,6 @@ public class Robot extends IterativeRobot {
      * @param number Usually speed
      * @return Squared value
      */
-    private double square(double number)
-    {
-        if (number >= 0.0)
-        {
-            return number * number;
-        }
-        else
-        {
-            return -(number * number);
-        }
-    }
     
     /**
      * This function is called periodically during test mode
@@ -229,4 +237,5 @@ public class Robot extends IterativeRobot {
     	br.set(frID);
     }
     
+
 }
